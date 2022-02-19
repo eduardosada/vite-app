@@ -1,0 +1,20 @@
+version: 0.2
+env:
+  shell: bash
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 16
+    commands:
+      - echo "INSTALL DEPENDENCIES"
+      - npm ci
+
+  build:
+    commands:
+      - npm run build
+
+  post_build:
+    commands:
+      - echo "Version to deploy is $EXECUTION_ID"
+      - aws s3 sync --delete dist s3://maravant-my-super-app
