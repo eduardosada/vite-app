@@ -132,6 +132,17 @@ Resources:
                   - s3:GetBucketAcl
                   - s3:GetBucketLocation
                 Resource: "*"
+
+              - Sid: TestsReports
+                Effect: Allow
+                Action:
+                  - codebuild:CreateReportGroup
+                  - codebuild:CreateReport
+                  - codebuild:UpdateReport
+                  - codebuild:BatchPutTestCases
+                  - codebuild:BatchPutCodeCoverages
+                Resource: "*"
+
   CodePipelineServiceRole:
     Type: AWS::IAM::Role
     Properties:
