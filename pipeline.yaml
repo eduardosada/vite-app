@@ -17,9 +17,19 @@ Parameters:
     Type: String
     Default: ""
 
-  GitHubBranch:
+  GitHubDevBranch:
     Type: String
     Default: "develop"
+    AllowedPattern: "[A-Za-z0-9-]+"
+
+  GitHubReleaseBranch:
+    Type: String
+    Default: "release"
+    AllowedPattern: "[A-Za-z0-9-]+"
+
+  GitHubMainBranch:
+    Type: String
+    Default: "master"
     AllowedPattern: "[A-Za-z0-9-]+"
 
   GitHubRepository:
@@ -56,110 +66,31 @@ Resources:
           - - Type: EVENT
               Pattern: "PULL_REQUEST_CREATED, PULL_REQUEST_UPDATED, PULL_REQUEST_REOPENED"
             - Type: BASE_REF
-              Pattern: !Sub ^refs/heads/${GitHubBranch}$
+              Pattern: !Sub ^refs/heads/${GitHubDevBranch}$
       Environment:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
         Image: aws/codebuild/standard:5.0
 
-      CodePipelineWebhook:
-        Type: AWS::CodePipeline::Webhook
-        Properties:
-          Authentication: GITHUB_HMAC
-          AuthenticationConfiguration:
-            SecretToken: !Ref GitHubToken
-          RegisterWithThirdParty: true
-          Filters:
-            - JsonPath: "$.ref"
-              MatchEquals: !Sub "refs/heads/${GitHubBranch}"
-            - JsonPath: "$.repository.name"
-              MatchEquals: !Sub "${GitHubRepository}"
-          TargetPipeline: !Ref CodePipeline
-          TargetAction: Source
-          TargetPipelineVersion: !GetAtt CodePipeline.Version
-
-    CodePipeline:
-      Type: AWS::CodePipeline::Pipeline
-      Properties:
-        Name: !Ref AWS::StackName
-        RoleArn: !Ref CodePipelineServiceRole
-        ArtifactStore:
-          Type: S3
-          Location: !Ref CodePipelineArtifactStore
-        Stages:
-          - Name: Source
-            Actions:
-              - Name: GitHub
-                RunOrder: 1
-                ActionTypeId:
-                  Category: Source
-                  Owner: ThirdParty
-                  Provider: GitHub
-                  Version: 1
-                Configuration:
-                  Owner: !Ref GitHubUsername
-                  Repo: !Ref GitHubRepository
-                  Branch: !Ref GitHubBranch
-                  OAuthToken: !Ref GitHubToken
-                  PollForSourceChanges: false
-                OutputArtifacts:
-                  - Name: SourceCode
-
-          - Name: Build
-            Actions:
-              - Name: Build
-                RunOrder: 2
-                ActionTypeId:
-                  Category: Build
-                  Owner: AWS
-                  Version: 1
-                  Provider: CodeBuild
-                Configuration:
-                  ProjectName: !Ref CodeBuildProject
-                InputArtifacts:
-                  - Name: SourceCode
-                OutputArtifacts:
-                  - Name: BuildOutput
-
-  #   ###########################################
-  #   # S3 ARTIFACTS :: CODEPIPELINE
-  #   ###########################################
-  #   ArtifactBucket:
-  #     Type: AWS::S3::Bucket
-  #     DeletionPolicy: Delete
-  #     UpdateReplacePolicy: Delete
-  #     Properties:
-  #       PublicAccessBlockConfiguration:
-  #         BlockPublicAcls: true
-  #         BlockPublicPolicy: true
-  #         IgnorePublicAcls: true
-  #         RestrictPublicBuckets: true
-  #       Tags:
-  #         - Key: Environment
-  #           Value: !Ref Environment
   CodePipelineArtifactStore:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
     Properties:
+      BucketName: !Sub
+        - "codebuild-artifacts-${Environment}-${RandomGUID}"
+        - {
+            RandomGUID:
+              !Select [
+                0,
+                !Split ["-", !Select [2, !Split ["/", !Ref AWS::StackId]]],
+              ],
+          }
       VersioningConfiguration:
         Status: Enabled
-
-  #   ###########################################
-  #   # S3 ARTIFACTS :: CODEBUILD
-  #   ###########################################
-  #   CodeBuildArtifactsBucket:
-  #     Type: AWS::S3::Bucket
-  #     DeletionPolicy: Delete
-  #     UpdateReplacePolicy: Delete
-  #     Properties:
-  #       BucketName: !Sub "eduardito-aws-pruebita-${Environment}-codebuild-artifacts"
-  #       PublicAccessBlockConfiguration:
-  #         BlockPublicAcls: true
-  #         BlockPublicPolicy: true
-  #         IgnorePublicAcls: true
-  #         RestrictPublicBuckets: true
-  #       Tags:
-  #         - Key: Environment
-  #           Value: !Ref Environment
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
 
   CodeBuildServiceRole:
     Type: AWS::IAM::Role
