@@ -74,8 +74,8 @@ Resources:
 
   CodePipelineArtifactStore:
     Type: AWS::S3::Bucket
-    DeletionPolicy: Delete
-    UpdateReplacePolicy: Delete
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Properties:
       BucketName: !Sub
         - "codebuild-artifacts-${Environment}-${RandomGUID}"
