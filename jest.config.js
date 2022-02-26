@@ -15,9 +15,15 @@ module.exports = {
   },
   collectCoverage: true,
   coverageDirectory: `reports/unit-reports/coverage`,
-  coverageReporters: ["html", "text-summary", "json-summary"],
+  coverageReporters: ["html", "text-summary", "cobertura"],
   reporters: [
     "default",
-    ["jest-junit", { outputDirectory: `reports/unit-reports/junit` }],
+    [
+      "jest-junit",
+      {
+        outputDirectory: `reports/unit-reports/tests`,
+        outputName: "junit.xml",
+      },
+    ],
   ],
 };
