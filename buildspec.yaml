@@ -17,3 +17,9 @@ phases:
   build:
     commands:
       - npm run build
+
+reports:
+  junit-reports:
+    files:
+      - "reports/unit/junit/*.xml"
+    file-format: "JUNITXML"
