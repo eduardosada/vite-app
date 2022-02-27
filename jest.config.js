@@ -13,4 +13,17 @@ module.exports = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
+  collectCoverage: true,
+  coverageDirectory: `reports/unit-reports/coverage`,
+  coverageReporters: ["html", "text-summary", "cobertura"],
+  reporters: [
+    "default",
+    [
+      "jest-junit",
+      {
+        outputDirectory: `reports/unit-reports/tests`,
+        outputName: "junit.xml",
+      },
+    ],
+  ],
 };

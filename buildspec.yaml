@@ -1,0 +1,30 @@
+version: 0.2
+env:
+  shell: bash
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 14
+    commands:
+      - echo "INSTALL DEPENDENCIES"
+      - npm ci
+
+  pre_build:
+    commands:
+      - npm test
+
+  build:
+    commands:
+      - npm run build
+
+reports:
+  unit-reports:
+    files:
+      - "reports/unit-reports/tests/junit.xml"
+    file-format: "JUNITXML"
+
+  coverage-reports:
+    files:
+      - "reports/unit-reports/coverage/cobertura-coverage.xml"
+    file-format: "COBERTURAXML"
